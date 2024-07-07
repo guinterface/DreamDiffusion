@@ -21,6 +21,44 @@ from sc_mbm.utils import save_model
 os.environ["WANDB_START_METHOD"] = "thread"
 os.environ['WANDB_DIR'] = "."
 
+
+
+from psutil import virtual_memory
+
+torch.cuda.empty_cache()
+
+ram_gb = virtual_memory().total / 1e9
+print('Your runtime has {:.1f} gigabytes of available RAM\n'.format(ram_gb))
+
+if ram_gb < 20:
+  print('Not using a high-RAM runtime')
+else:
+  print('You are using a high-RAM runtime!')
+
+import GPUtil
+
+import gc
+
+gc.collect()
+
+torch.cuda.empty_cache()
+
+
+
+
+def get_gpu_memory():
+    GPUs = GPUtil.getGPUs()
+    if len(GPUs) == 0:
+        return 0
+    return GPUs[0].memoryTotal, GPUs[0].memoryUsed, GPUs[0].memoryFree
+
+gpu_total, gpu_used, gpu_free = get_gpu_memory()
+print(f"Total GPU memory: {gpu_total:.1f}GB")
+print(f"Used GPU memory: {gpu_used:.1f}GB")
+print(f"Free GPU memory: {gpu_free:.1f}GB")
+
+
+torch.cuda.empty_cache()
 class wandb_logger:
     def __init__(self, config):
         wandb.init(
@@ -105,7 +143,7 @@ def main(config):
     # print('num of gpu:')
     # print(torch.cuda.device_count())
     if torch.cuda.device_count() > 1:
-        torch.cuda.set_device(config.local_rank) 
+        torch.cuda.set_device(1) 
         torch.distributed.init_process_group(backend='nccl')
     output_path = os.path.join(config.root_path, 'results', 'eeg_pretrain',  '%s'%(datetime.datetime.now().strftime("%d-%m-%Y-%H-%M-%S")))
     config.output_path = output_path
@@ -121,7 +159,7 @@ def main(config):
     np.random.seed(config.seed)
 
     # create dataset and dataloader
-    dataset_pretrain = eeg_pretrain_dataset(path='../dreamdiffusion/datasets/mne_data/', roi=config.roi, patch_size=config.patch_size,
+    dataset_pretrain = eeg_pretrain_dataset(path='dataset/eegdataset/eeg/', roi=config.roi, patch_size=config.patch_size,
                 transform=fmri_transform, aug_times=config.aug_times, num_sub_limit=config.num_sub_limit, 
                 include_kam=config.include_kam, include_hcp=config.include_hcp)
    

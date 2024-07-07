@@ -9,7 +9,7 @@ def get_1d_sincos_pos_embed(embed_dim, length, cls_token=False):
     return:
     pos_embed: [grid_size*grid_size, embed_dim] or [1+grid_size*grid_size, embed_dim] (w/ or w/o cls_token)
     """
-    grid_l = np.arange(length, dtype=np.float32)
+    grid_l = np.arange(length, dtype=float)
 
     grid_l = grid_l.reshape([1, length])
     pos_embed = get_1d_sincos_pos_embed_from_grid(embed_dim, grid_l)
@@ -24,7 +24,7 @@ def get_1d_sincos_pos_embed_from_grid(embed_dim, pos):
     out: (M, D)
     """
     assert embed_dim % 2 == 0
-    omega = np.arange(embed_dim // 2, dtype=np.float)
+    omega = np.arange(embed_dim // 2, dtype=float)
     omega /= embed_dim / 2.
     omega = 1. / 10000**omega  # (D/2,)
 
